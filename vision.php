@@ -14,31 +14,60 @@ if (isset($_GET['imageUrl']) && !empty($_GET['imageUrl'])) {
     'keyFilePath' => GOOGLE_APPLICATION_CREDENTIALS
   ]);
 
-// Annotate an image, detecting faces.
   $image = $vision->image(
-    $image, ['labels']
+    $image, ['FACE_DETECTION', 'LABEL_DETECTION', 'LANDMARK_DETECTION']
   );
 
   $result = $vision->annotate($image);
 
+//  echo json_encode($result);die();
   /**
    * @var \Google\Cloud\Vision\Annotation $result;
    */
 
   if (empty($result->error())) {
+
+    $labels = [];
     /**
      * @var integer $key
      * @var \Google\Cloud\Vision\Annotation\Entity $label
      */
-
-    $allLabels = [];
-
     foreach ($result->labels() as $key => $label) {
-      $labels = [$label->description(), $label->score()];
-      array_push($allLabels, $labels);
+      $label = [$label->description(), $label->score()];
+      array_push($labels, $label);
     }
 
-    echo json_encode($allLabels);
+    $faces = [];
+    /**
+     * @var integer $key
+     * @var \Google\Cloud\Vision\Annotation\Entity $face
+     */
+    foreach ($result->faces() as $key => $face) {
+      $face = $face->score();
+      array_push($faces, $face);
+    }
+
+    $landmarks = [];
+    /**
+     * @var integer $key
+     * @var \Google\Cloud\Vision\Annotation\Entity $landmark
+     */
+    foreach ($result->landmarks() as $key => $landmark) {
+      $landmark = [
+        'score' => $landmark->score(),
+        'description' => $landmark->description(),
+        'location' => $landmark->locations()
+      ];
+      array_push($landmarks, $landmark);
+    }
+
+    $result = [
+      'faces' => $faces,
+      'labels' => $labels,
+      'landmark' => $landmarks
+    ];
+
+    echo json_encode($result);
   }
 }
 
