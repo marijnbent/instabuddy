@@ -7,7 +7,6 @@ class VisionImageScan
   private $imageUrl;
   private $googleVisionCredentials = __DIR__ . '/googleVisionSecret.json';
 
-
   public function getImageResult($imageUrl)
   {
     $this->imageUrl = $imageUrl;
@@ -35,7 +34,10 @@ class VisionImageScan
        * @var \Google\Cloud\Vision\Annotation\Entity $label
        */
       foreach ($result->labels() as $key => $label) {
-        $label = [$label->description(), $label->score()];
+        $label = [
+          'label' => $label->description(),
+          'score' => $label->score()
+        ];
         array_push($labels, $label);
       }
 
@@ -45,7 +47,14 @@ class VisionImageScan
        * @var \Google\Cloud\Vision\Annotation\Entity $face
        */
       foreach ($result->faces() as $key => $face) {
-        $face = $face->score();
+        $face = [
+          'faceConfidence' => $face->detectionConfidence(),
+          'joyScore' => $face->joyLikelihood(),
+          'angerScore' => $face->angerLikelihood(),
+          'sorrowScore' => $face->sorrowLikelihood(),
+          'surpriseScore' => $face->surpriseLikelihood(),
+          'headwearScore' => $face->headwearLikelihood()
+          ];
         array_push($faces, $face);
       }
 
