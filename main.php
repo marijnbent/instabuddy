@@ -1,15 +1,24 @@
 <?php
 
-function __autoload($class_name) {
-  require_once $class_name . '.php';
+spl_autoload_register(function ($class) {
+  include $class . '.php';
+});
+
+$instagramUsername = 'marijnbent';
+$insta = new InstagramCrawler($instagramUsername);
+$vision = new VisionImageScan;
+$scanResult = new ScanResult();
+
+$result = [];
+$images = $insta->getUserMedia();
+foreach ($images as $image) {
+  $imageCaption = $image['caption'];
+  $imageSrc = $image['src'];
+  $visionResult = $vision->getImageResult($imageSrc);
+  array_push($result, ['vision' => $visionResult, 'image' => $image]);
+
+  $scanResult->generateDominantLabels($visionResult['labels']);
 }
 
-//$instagramUsername = 'marijnbent';
-//$inst = new InstagramCrawler($instagramUsername);
-//echo json_encode($inst->getUserMedia());
-
-//$url = 'https://cloud.google.com/vision/docs/images/cat.jpg';
-$url = 'https://static.afbeeldinguploaden.nl/1704/250246/5FqDDsFF.png';
-
-$vision = new VisionImageScan();
-print_r( $vision->getImageResult($url));
+echo json_encode($scanResult->getDominantLabels());
+echo json_encode($result);

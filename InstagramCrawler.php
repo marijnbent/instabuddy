@@ -3,7 +3,6 @@ require 'vendor/autoload.php';
 
 class InstagramCrawler
 {
-
   private $instagramUsername;
   private $user;
   private $userId;
@@ -32,6 +31,7 @@ class InstagramCrawler
       'private' => $this->user->is_private,
       'photo' => $this->user->profile_pic_url,
       'username' => $this->instagramUsername
+      //TODO: count images?
     ];
     return $userArray;
   }
