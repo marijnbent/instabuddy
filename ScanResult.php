@@ -9,31 +9,44 @@ class ScanResult
   private $sorrowFaces;
   private $angerFaces;
   private $joyFaces;
+  private $blacklistedLabels = [
+    'photo',
+    'image',
+    'photograph'
+  ];
 
-  public function __construct() {
+  public function __construct()
+  {
     $this->dominantLabels = [];
   }
 
-  public function generateDominantLabels($labels) {
+  public function generateDominantLabels($labels)
+  {
     $labelArray = $this->dominantLabels;
     foreach ($labels as $label) {
-      if (!empty($labelArray[$label['label']])) {
-        $labelArray[$label['label']] = intval($labelArray[$label['label']]) + 1;
-      } else {
-        $labelArray[$label['label']] = 1;
+      if (!in_array($label['label'], $this->blacklistedLabels)) {
+        if (!empty($labelArray[$label['label']])) {
+          $labelArray[$label['label']] = intval($labelArray[$label['label']]) + 1;
+        } else {
+          $labelArray[$label['label']] = 1;
+        }
       }
     }
     $this->dominantLabels = $labelArray;
   }
 
-  public function generateTotalImages($images) {
+  public function generateTotalImages($images)
+  {
     $this->totalImages = count($images);
   }
-  
-  public function generateTotalFaces($faces) {
-    
+
+  public function generateTotalFaces($faces)
+  {
+
   }
-  public function generateEmotionFaces($faces) {
+
+  public function generateEmotionFaces($faces)
+  {
 
   }
 
