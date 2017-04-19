@@ -1,5 +1,6 @@
 <?php
 require 'vendor/autoload.php';
+
 use Google\Cloud\Vision\VisionClient;
 
 class VisionImageScan
@@ -33,53 +34,58 @@ class VisionImageScan
        * @var integer $key
        * @var \Google\Cloud\Vision\Annotation\Entity $label
        */
-      foreach ($result->labels() as $key => $label) {
-        $label = [
-          'label' => $label->description(),
-          'score' => $label->score()
-        ];
-        array_push($labels, $label);
-      }
-
-      $faces = [];
-      /**
-       * @var integer $key
-       * @var \Google\Cloud\Vision\Annotation\Entity $face
-       */
-      foreach ($result->faces() as $key => $face) {
-        $face = [
-          'faceConfidence' => $face->detectionConfidence(),
-          'joyScore' => $face->joyLikelihood(),
-          'angerScore' => $face->angerLikelihood(),
-          'sorrowScore' => $face->sorrowLikelihood(),
-          'surpriseScore' => $face->surpriseLikelihood(),
-          'headwearScore' => $face->headwearLikelihood()
+      if (!empty($result->labels())) {
+        foreach ($result->labels() as $key => $label) {
+          $label = [
+            'label' => $label->description(),
+            'score' => $label->score()
           ];
-        array_push($faces, $face);
+          array_push($labels, $label);
+        }
       }
 
-      $landmarks = [];
-      /**
-       * @var integer $key
-       * @var \Google\Cloud\Vision\Annotation\Entity $landmark
-       */
-      foreach ($result->landmarks() as $key => $landmark) {
-        $landmark = [
-          'score' => $landmark->score(),
-          'description' => $landmark->description(),
-          'location' => $landmark->locations()
-        ];
-        array_push($landmarks, $landmark);
-      }
+//      $faces = [];
+//      /**
+//       * @var integer $key
+//       * @var \Google\Cloud\Vision\Annotation\Entity $face
+//       */
+//      if (!empty($result->faces())) {
+//        foreach ($result->faces() as $key => $face) {
+//          $face = [
+//            'faceConfidence' => $face->detectionConfidence(),
+//            'joyScore' => $face->joyLikelihood(),
+//            'angerScore' => $face->angerLikelihood(),
+//            'sorrowScore' => $face->sorrowLikelihood(),
+//            'surpriseScore' => $face->surpriseLikelihood(),
+//            'headwearScore' => $face->headwearLikelihood()
+//          ];
+//          array_push($faces, $face);
+//        }
+//      }
+//
+//      $landmarks = [];
+//      /**
+//       * @var integer $key
+//       * @var \Google\Cloud\Vision\Annotation\Entity $landmark
+//       */
+//      if (!empty($result->landmarks())) {
+//        foreach ($result->landmarks() as $key => $landmark) {
+//          $landmark = [
+//            'score' => $landmark->score(),
+//            'description' => $landmark->description(),
+//            'location' => $landmark->locations()
+//          ];
+//          array_push($landmarks, $landmark);
+//        }
+//      }
 
       $result = [
-        'faces' => $faces,
+//        'faces' => $faces,
         'labels' => $labels,
-        'landmark' => $landmarks
+//        'landmark' => $landmarks
       ];
 
       return $result;
-
     }
 
     return $result->error();

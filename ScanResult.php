@@ -27,10 +27,11 @@ class ScanResult
   }
 
   public function generateTotalImages($images) {
-
+    $this->totalImages = count($images);
   }
+  
   public function generateTotalFaces($faces) {
-
+    
   }
   public function generateEmotionFaces($faces) {
 

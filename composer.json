@@ -1,6 +1,7 @@
 {
     "require": {
         "google/cloud": "^0.26.0",
-        "bolandish/instagram-grabber": "^1.0"
+        "bolandish/instagram-grabber": "^1.0",
+        "asyncphp/doorman": "^3.0"
     }
 }

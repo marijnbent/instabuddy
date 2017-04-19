@@ -36,30 +36,25 @@ class InstagramCrawler
     return $userArray;
   }
 
-  public function getUserMedia()
+  public function getUserMedia($count)
   {
 
     /**
      * Get media from user
      */
-    $images = Bolandish\Instagram::getMediaByUserID($this->userId);
+    $images = Bolandish\Instagram::getMediaByUserID($this->userId, $count);
     $imagesArray = [];
     foreach ($images as $image) {
       if ($image->is_video == false) {
-
         if (!empty($image->caption)) {
           $imageDescription = $image->caption;
         } else {
           $imageDescription = false;
         }
-
-        $imageSrc = $image->display_src;
-        array_push($imagesArray, ['caption' => $imageDescription, 'src' => $imageSrc]);
+        array_push($imagesArray, ['caption' => $imageDescription, 'src' => $imageSrc = $image->display_src, 'thumbnail' => $imageSrc = $image->display_src]);
       }
     }
-
     return $imagesArray;
-
     // Checks if media is accessible
 //        if (empty($imagesArray)) {
 //          if ($userIsPrivate) {

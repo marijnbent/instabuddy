@@ -9,3 +9,4 @@ composer.phar
 /.idea
 
 googleVisionSecret.json
+*.lock
