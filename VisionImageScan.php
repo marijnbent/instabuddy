@@ -83,7 +83,7 @@ class VisionImageScan
         }
       }
     }
-    $this->dominantLabels = $allLabels;
+    $this->allLabels = $allLabels;
   }
 
   /**
@@ -91,6 +91,7 @@ class VisionImageScan
    */
   public function getAllLabels()
   {
+    error_log(count($this->allLabels) . ' labels returned' . PHP_EOL, 3, ERROR_PATH);
     return $this->allLabels;
   }
 

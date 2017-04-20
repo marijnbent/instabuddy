@@ -1,16 +1,17 @@
 <?php
+ini_set('max_execution_time', 0);
+ini_set('set_time_limit', 0);
+
 require 'vendor/autoload.php';
+
 spl_autoload_register(function ($class) {
   include $class . '.php';
 });
-ini_set('max_execution_time', 1000);
-ini_set('set_time_limit', 1000);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-define('ERROR_PATH', getcwd() . "/error.log");
-define('INSTABUDDIES_FILE', getcwd() . "/instabuddies.json");
+if (!defined('ERROR_PATH'))
+  define('ERROR_PATH', getcwd() . "/error.log");
+if (!defined('INSTABUDDIES_FILE'))
+  define('INSTABUDDIES_FILE', getcwd() . "/instabuddies.json");
 
 class Instabuddy
 {
@@ -19,10 +20,7 @@ class Instabuddy
 
   public function __construct()
   {
-    error_log('------- Main started' . PHP_EOL, 3, ERROR_PATH);
     $this->jsonFile = json_decode(file_get_contents(INSTABUDDIES_FILE), true);
-    error_log('JSON decoded' . PHP_EOL, 3, ERROR_PATH);
-
   }
 
   public function newJsonEntry($instagramUsername, $replace = false)
@@ -44,7 +42,8 @@ class Instabuddy
       $labels = $scan->imagesScan($imagesSrc);
       error_log('---Vision returned' . PHP_EOL, 3, ERROR_PATH);
 
-      $generatedEntry = ['labels' => $labels, 'images' => $images, 'meta' => ['last_updated' => time()], 'user' => $userInfo];
+      $generatedEntry = ['labels' => $labels, 'images' => array_slice($images, 0, 14), 'meta' => ['last_updated' => time()], 'user' => $userInfo];
+//      $generatedEntry = ['labels' => $labels, 'images' => $images, 'meta' => ['last_updated' => time()], 'user' => $userInfo];
 
       if (!empty($generatedEntry['labels'])) {
         arsort($generatedEntry['labels']);
@@ -55,8 +54,44 @@ class Instabuddy
       $this->jsonFile[$instagramUsername] = $generatedEntry;
       $this->jsonFile = json_encode($this->jsonFile);
       file_put_contents(INSTABUDDIES_FILE, $this->jsonFile);
-      error_log(' -] Result saved' . PHP_EOL, 3, ERROR_PATH);
+      error_log(' -] Result saved from ' . $instagramUsername . PHP_EOL, 3, ERROR_PATH);
 
+      return true;
     }
+    return false;
+  }
+
+  public function getSimilarUser($instagramUsername, $returnedUsersCount = 1) {
+    $userToCheck = $instagramUsername;
+    $results = [];
+    foreach ($this->jsonFile as $username => $result) {
+      if ($username !== $userToCheck) {
+        $arrayChecked = $this->jsonFile[$userToCheck]['labels'];
+        $arrayBuddy = $result['labels'];
+
+        $totalValueCountChecked = 0;
+        foreach ($arrayChecked as $value) {
+          $totalValueCountChecked = $totalValueCountChecked + intval($value);
+        }
+        $totalValueCountBuddy = 0;
+        foreach ($arrayBuddy as $value) {
+          $totalValueCountBuddy = $totalValueCountBuddy + intval($value);
+        }
+
+        $matches = array_intersect_key($arrayChecked, $arrayBuddy);
+
+        $totalMatchCount = 0;
+        foreach ($matches as $match => $valueChecked) {
+          $totalMatchCount = $totalMatchCount + intval($arrayBuddy[$match]);
+        }
+
+        $similarity = round((intval($totalMatchCount)/intval($totalValueCountChecked))*100);
+        if ($similarity > 100)
+          $similarity = 100;
+        $results[$username] = $similarity;
+      }
+    }
+    arsort($results);
+    return array_slice($results, 0, $returnedUsersCount);
   }
 }
