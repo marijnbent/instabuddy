@@ -5,91 +5,96 @@ use Google\Cloud\Vision\VisionClient;
 
 class VisionImageScan
 {
-  private $imageUrl;
+  private $maxImagesPerRequest = 12;
+
+  private $visionClient;
   private $googleVisionCredentials = __DIR__ . '/googleVisionSecret.json';
 
-  public function getImageResult($imageUrl)
-  {
-    $this->imageUrl = $imageUrl;
+  private $allLabels;
+  private $blacklistedLabels = ['photo','image','photograph'];
 
-    $vision = new VisionClient([
+  public function __construct() {
+    $this->visionClient = new VisionClient([
       'projectId' => 'tidy-fort-135623',
       'keyFile' => json_decode(file_get_contents($this->googleVisionCredentials), true),
       'keyFilePath' => $this->googleVisionCredentials
     ]);
 
-    $image = $vision->image(
-      $this->imageUrl, ['FACE_DETECTION', 'LABEL_DETECTION', 'LANDMARK_DETECTION']
-    );
+  }
 
-    $result = $vision->annotate($image);
+  public function imagesScan($imagesSrc)
+  {
+    $result = [];
+    $imagesChunks = array_chunk($imagesSrc, $this->maxImagesPerRequest);
+    foreach ($imagesChunks as $chunk) {
+      $images = $this->visionClient->images(
+        $chunk, ['FACE_DETECTION', 'LABEL_DETECTION', 'LANDMARK_DETECTION']
+      );
+      error_log('>Vision send (' . count($chunk) . ' images)' . PHP_EOL, 3, ERROR_PATH);
+      $results = $this->visionClient->annotateBatch($images);
+      error_log('<Vision received' . PHP_EOL, 3, ERROR_PATH);
 
+      /**
+       * @var \Google\Cloud\Vision\Annotation $result ;
+       */
+      foreach($results as $result) {
+        $this->handleAnnotationResult($result);
+      }
+    }
+
+    return $this->getAllLabels();
+  }
+
+  /**
+   * @param \Google\Cloud\Vision\Annotation $result
+   * @return array
+   */
+  private function handleAnnotationResult($result) {
     /**
      * @var \Google\Cloud\Vision\Annotation $result ;
      */
+    $labels = [];
     if (empty($result->error())) {
-
-      $labels = [];
       /**
        * @var integer $key
        * @var \Google\Cloud\Vision\Annotation\Entity $label
        */
       if (!empty($result->labels())) {
         foreach ($result->labels() as $key => $label) {
-          $label = [
-            'label' => $label->description(),
-            'score' => $label->score()
-          ];
-          array_push($labels, $label);
+          $labels[] = $label->description();
         }
       }
-
-//      $faces = [];
-//      /**
-//       * @var integer $key
-//       * @var \Google\Cloud\Vision\Annotation\Entity $face
-//       */
-//      if (!empty($result->faces())) {
-//        foreach ($result->faces() as $key => $face) {
-//          $face = [
-//            'faceConfidence' => $face->detectionConfidence(),
-//            'joyScore' => $face->joyLikelihood(),
-//            'angerScore' => $face->angerLikelihood(),
-//            'sorrowScore' => $face->sorrowLikelihood(),
-//            'surpriseScore' => $face->surpriseLikelihood(),
-//            'headwearScore' => $face->headwearLikelihood()
-//          ];
-//          array_push($faces, $face);
-//        }
-//      }
-//
-//      $landmarks = [];
-//      /**
-//       * @var integer $key
-//       * @var \Google\Cloud\Vision\Annotation\Entity $landmark
-//       */
-//      if (!empty($result->landmarks())) {
-//        foreach ($result->landmarks() as $key => $landmark) {
-//          $landmark = [
-//            'score' => $landmark->score(),
-//            'description' => $landmark->description(),
-//            'location' => $landmark->locations()
-//          ];
-//          array_push($landmarks, $landmark);
-//        }
-//      }
-
-      $result = [
-//        'faces' => $faces,
-        'labels' => $labels,
-//        'landmark' => $landmarks
-      ];
-
-      return $result;
     }
-
-    return $result->error();
+    $this->generateDominantLabels($labels);
   }
+
+  /**
+   * @param $labels
+   */
+  private function generateDominantLabels($labels)
+  {
+    $allLabels = $this->allLabels;
+    foreach ($labels as $label) {
+      if (!in_array($label, $this->blacklistedLabels)) {
+        if (!empty($allLabels[$label])) {
+          $allLabels[$label] = intval($allLabels[$label]) + 1;
+        } else {
+          $allLabels[$label] = 1;
+        }
+      }
+    }
+    $this->dominantLabels = $allLabels;
+  }
+
+  /**
+   * @return mixed
+   */
+  public function getAllLabels()
+  {
+    return $this->allLabels;
+  }
+
+
 }
 
 

@@ -51,7 +51,7 @@ class InstagramCrawler
         } else {
           $imageDescription = false;
         }
-        array_push($imagesArray, ['caption' => $imageDescription, 'src' => $imageSrc = $image->display_src, 'thumbnail' => $imageSrc = $image->display_src]);
+        array_push($imagesArray, ['caption' => $imageDescription, 'src' => $image->display_src, 'thumbnail' => $image->thumbnail_src]);
       }
     }
     return $imagesArray;
