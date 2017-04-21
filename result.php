@@ -12,115 +12,37 @@ spl_autoload_register(function ($class) {
 $instabuddiesJson = json_decode(file_get_contents(INSTABUDDIES_FILE), true);
 error_log('JSON decoded' . PHP_EOL, 3, ERROR_PATH);
 
-if (!empty($_POST['username'])) {
-  $username = $_POST['username'];
+if (!empty($_GET['user'])) {
+  $usernameCompared = $_GET['user'];
+} else {
+  header('Location: /');
 }
-$username = 'marijnbent';
 
-if (!empty($instabuddiesJson[$username])) {
+if (!empty($instabuddiesJson[$usernameCompared])) {
   $instabuddy = new Instabuddy();
-  $buddySimilar = $instabuddy->getSimilarUser($username);
-  $buddyUsername = array_keys($buddySimilar)[0];
-  $comparisonPercentage = $buddySimilar[$buddyUsername];
-
-  $user1Images = $instabuddiesJson[$username]['images'];
-  $user2Images = $instabuddiesJson[$buddyUsername]['images'];
-  $user1Info = $instabuddiesJson[$username]['user'];
-  $user2Info = $instabuddiesJson[$buddyUsername]['user'];
-  $user1Images = array_slice($user1Images, 0, 8);
-  $user2Images = array_slice($user2Images, 0, 8);
+  $buddies = $instabuddy->getSimilarUser($usernameCompared, 3);
 
   $imageArray = [];
-  foreach ($user1Images as $image) {
-    $imageArray[] = [
-      'src' => $image['src'],
-      'caption' => $image['caption'],
-      'thumbnail' => $image['thumbnail'],
-    ];
+  foreach ($buddies as $username => $comparison) {
+    $imageArray = array_merge($imageArray, array_slice($instabuddiesJson[$username]['images'], 0, 6));
   }
-  foreach ($user2Images as $image) {
-    $imageArray[] = [
-      'src' => $image['src'],
-      'caption' => $image['caption'],
-      'thumbnail' => $image['thumbnail'],
-    ];
-  }
-
+} else {
+  header('Location: /');
 }
 
 
 ?>
-<html>
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
 <head>
-  <style>
-    body {
-      margin: 0;
-      padding 0;
-      font-family: Helvetica, sans-serif;
-    }
-
-    #imagegrid {
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-    }
-
-    #imagegrid-overlay {
-      background-color: rgba(0, 0, 0, 0.3);
-      position: absolute;
-      top: 0;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    .photoset-row {
-      height: 25vh !important;
-    }
-
-    #imagegrid img {
-      object-fit: cover;
-      height: 100% !important;
-      margin-top: 0 !important;
-    }
-
-    .buddies {
-      position: absolute;
-      top: 0;
-      background: white;
-      padding: 10px;
-      border-radius: 3px;
-      margin-left: 20vw;
-      margin-right: 20vw;
-      display: block;
-      width: 60vw;
-      margin-top: 30vh;
-      min-height: 300px;
-    }
-
-    .buddies .left {
-      width: 40%;
-      margin-left: 5%;
-      float: left;
-    }
-
-    .buddies .right {
-      width: 40%;
-      margin-right: 5%;
-      float: right;
-    }
-
-    .buddies .percentage {
-      font-size: 60px;
-      width: 100%;
-      display: block;
-      text-align: center;
-      padding-top: 10px;
-      padding-bottom: 20px;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foundation for Sites</title>
+  <link rel="stylesheet" href="css/foundation.css">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-
 
 <div id="imagegrid">
   <?php foreach ($imageArray as $img) { ?>
@@ -129,50 +51,56 @@ if (!empty($instabuddiesJson[$username])) {
 </div>
 <div id="imagegrid-overlay"></div>
 
-<div class="buddies">
-  <span class="percentage"><?= $comparisonPercentage; ?>%</span>
-  <div class="left">
-    <img src="<?= $user1Info['photo']; ?>"/>
-    <p class="username"><?= $user1Info['name'] . ' (' . $user1Info['username'] . ')'; ?></p>
-    <p class="bio"><?= $user1Info['description']; ?></p>
-  </div>
-  <div class="right">
-    <img src="<?= $user2Info['photo']; ?>"/>
-    <p class="username"><?= $user2Info['name'] . ' (' . $user2Info['username'] . ')'; ?></p>
-    <p class="bio"><?= $user2Info['description']; ?></p>
+<div class="compared row">
+  <div class="large-12 columns">
+    <div class="buddy">
+      <?php $user = $instabuddiesJson[$usernameCompared]['user']; ?>
+      <img src="<?= $user['photo']; ?>"/>
+      <div class="buddy--content">
+        <p class="username"><?= $user['name'] . ' (' . $user['username'] . ')'; ?></p>
+      </div>
+    </div>
   </div>
 </div>
 
-<script
-  src="https://code.jquery.com/jquery-2.2.4.min.js"
-  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
-  crossorigin="anonymous"></script>
+<div class="buddies row">
+  <?php foreach ($buddies as $username => $comparison):
+    $user = $instabuddiesJson[$username]['user']
+    ?>
+    <div class="large-4 columns">
+      <div class="buddy">
+        <img src="<?= $user['photo']; ?>"/>
+        <span class="comparison"><?= $comparison; ?>%</span>
+        <div class="buddy--content">
+          <p
+            class="username"><?= $user['name'] . ' (<a target="_blank" href="http://instagram.com/' . $user['username'] . '">' . $user['username'] . '</a>)'; ?></p>
+          <p class="bio"><?= $user['description']; ?></p>
+        </div>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
+<script src="js/vendor/jquery.js"></script>
+<script src="js/vendor/what-input.js"></script>
+<script src="js/vendor/foundation.js"></script>
+
 <script src="/js/grid.min.js"></script>
+<script src="js/app.js"></script>
 
 <script>
   $(function () {
     $('#imagegrid').photosetGrid({
-      layout: '5434',
+      layout: '5454', //18 = 6pp
       width: '100%',
       gutter: '5px',
       highresLinks: true,
       lowresWidth: 300,
       rel: 'gallery-01',
-      borderActive: false,
-
-      onInit: function () {
-      },
-      onComplete: function () {
-
-        $('.photoset-grid').css({
-          'visibility': 'visible'
-        });
-
-      }
+      borderActive: false
     });
-
-
   });
 </script>
 </body>
 </html>
+

@@ -10,18 +10,17 @@ spl_autoload_register(function ($class) {
   include $class . '.php';
 });
 
-error_log('------- Main started' . PHP_EOL, 3, ERROR_PATH);
-
+$generating = false;
 $json = json_decode(file_get_contents(INSTABUDDIES_FILE), true);
-echo count($json);
-
-$instabuddy = new Instabuddy();
-var_dump($instabuddy->getSimilarUser('sannebent03', 10));
-die();
-//$result = $instabuddy->newJsonEntry('sannebent03', false);
-//error_log($result . PHP_EOL, 3, ERROR_PATH);
-
-error_log('==== Main Ended' . PHP_EOL, 3, ERROR_PATH);
+if (isset($_POST['instragramUsername']) && !empty($_POST['instragramUsername'])) {
+  $username = $_POST['instragramUsername'];
+  if (empty($json[$username])) {
+    $instabuddy->newJsonEntry($username);
+    $generating = true;
+  } else {
+    header('Location: /result.php?user=' . $username);
+  }
+}
 
 ?>
 
@@ -42,17 +41,27 @@ error_log('==== Main Ended' . PHP_EOL, 3, ERROR_PATH);
   </div>
 </div>
 
+<?php if ($generating): ?>
+  <div class="row">
+    <div class="large-12 columns">
+      <div class="callout">
+        <h3>Thanks for trying out InstaBuddies!</h3>
+        <p>Your profile is being analysed right now. Sit back, relax, and come back in a few minutes.</p>
+      </div>
+    </div>
+  </div>
+
+<?php else: ?>
 <div class="row">
   <div class="large-12 columns">
     <div class="callout">
-      <h3>We&rsquo;re stoked you want to try Foundation! </h3>
-      <p>To get going, this file (index.html) includes some basic styles you can modify, play around with, or totally destroy to get going.</p>
-      <p>Once you've exhausted the fun in this document, you should check out:</p>
+      <h3>We&rsquo;re stoked you want to try InstaBuddies! </h3>
+      <p>To get going, check if your Instagram account is set to public and type in your username below!</p>
       <form action="" method="post">
         <div class="row">
           <div class="large-12 columns">
             <label>Instagram Username</label>
-            <input type="text" placeholder="marijnbent" />
+            <input id="instragramUsername" name="instragramUsername" type="text" placeholder="marijnbent" />
           </div>
         </div>
         <div class="row">
@@ -64,6 +73,7 @@ error_log('==== Main Ended' . PHP_EOL, 3, ERROR_PATH);
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <script src="js/vendor/jquery.js"></script>
 <script src="js/vendor/what-input.js"></script>
