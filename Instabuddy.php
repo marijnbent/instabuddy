@@ -12,6 +12,8 @@ if (!defined('ERROR_PATH'))
   define('ERROR_PATH', getcwd() . "/error.log");
 if (!defined('INSTABUDDIES_FILE'))
   define('INSTABUDDIES_FILE', getcwd() . "/instabuddies.json");
+if (!defined('TOANALYSE_FILE'))
+  define('TOANALYSE_FILE', getcwd() . "/toAnalyse.json");
 
 class Instabuddy
 {
@@ -21,6 +23,39 @@ class Instabuddy
   public function __construct()
   {
     $this->jsonFile = json_decode(file_get_contents(INSTABUDDIES_FILE), true);
+  }
+
+  public function getInstabuddiesJson()
+  {
+    return json_decode(file_get_contents(INSTABUDDIES_FILE), true);
+  }
+
+  public function setInstabuddiesJson($newData)
+  {
+    file_put_contents(INSTABUDDIES_FILE, json_encode($newData));
+    return true;
+  }
+  public function getToAnalyseJson()
+  {
+    return json_decode(file_get_contents(TOANALYSE_FILE), true);
+  }
+
+  public function setToAnalyseJson($newData)
+  {
+    file_put_contents(TOANALYSE_FILE, json_encode($newData));
+    return true;
+  }
+
+  public function addToAnalyse($username)
+  {
+    $toAnalyse = $this->getToAnalyseJson();
+    if (!empty($toAnalyse)) {
+      $toAnalyse[] = $username;
+    } else {
+      $toAnalyse = [$username];
+    }
+    $this->setToAnalyseJson(($toAnalyse));
+    return true;
   }
 
   public function newJsonEntry($instagramUsername, $replace = false)
@@ -61,7 +96,8 @@ class Instabuddy
     return false;
   }
 
-  public function getSimilarUser($instagramUsername, $returnedUsersCount = 1) {
+  public function getSimilarUser($instagramUsername, $returnedUsersCount = 1)
+  {
     $userToCheck = $instagramUsername;
     $results = [];
     foreach ($this->jsonFile as $username => $result) {
@@ -85,7 +121,7 @@ class Instabuddy
           $totalMatchCount = $totalMatchCount + intval($arrayBuddy[$match]);
         }
 
-        $similarity = round((intval($totalMatchCount)/intval($totalValueCountChecked))*100);
+        $similarity = round((intval($totalMatchCount) / intval($totalValueCountChecked)) * 100);
         if ($similarity > 100)
           $similarity = 100;
         $results[$username] = $similarity;

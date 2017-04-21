@@ -1,9 +1,16 @@
 <?php
 
+ini_set('max_execution_time', 0);
+ini_set('set_time_limit', 0);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 if (!defined('ERROR_PATH'))
   define('ERROR_PATH', getcwd() . "/error.log");
 if (!defined('INSTABUDDIES_FILE'))
   define('INSTABUDDIES_FILE', getcwd() . "/instabuddies.json");
+
 
 require 'vendor/autoload.php';
 spl_autoload_register(function ($class) {
@@ -15,7 +22,8 @@ $json = json_decode(file_get_contents(INSTABUDDIES_FILE), true);
 if (isset($_POST['instragramUsername']) && !empty($_POST['instragramUsername'])) {
   $username = $_POST['instragramUsername'];
   if (empty($json[$username])) {
-    $instabuddy->newJsonEntry($username);
+    $instabuddy = new Instabuddy();
+    $instabuddy->addToAnalyse($username);
     $generating = true;
   } else {
     header('Location: /result.php?user=' . $username);
