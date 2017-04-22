@@ -17,5 +17,6 @@ $usersToAnalyse = $instabuddy->getToAnalyseJson();
 foreach ($usersToAnalyse as $user) {
   $instabuddy->newJsonEntry($user, false);
 }
+$instabuddy->setToAnalyseJson([]);
 error_log('-------= Cron ended' . PHP_EOL, 3, ERROR_PATH);
 

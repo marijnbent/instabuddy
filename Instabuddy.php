@@ -49,13 +49,9 @@ class Instabuddy
   public function addToAnalyse($username)
   {
     $toAnalyse = $this->getToAnalyseJson();
-    if (!empty($toAnalyse)) {
-      $toAnalyse[] = $username;
-    } else {
-      $toAnalyse = [$username];
-    }
-    $this->setToAnalyseJson(($toAnalyse));
-    return true;
+    $toAnalyse[] = $username;
+    $this->setToAnalyseJson($toAnalyse);
+    return $toAnalyse;
   }
 
   public function newJsonEntry($instagramUsername, $replace = false)
